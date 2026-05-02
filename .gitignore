@@ -1,0 +1,22 @@
+# Modelo local (ya está en HF Hub)
+modelo_sentimientos/
+
+# Archivos sensibles
+login_hf.py
+uploadModelo.py
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# VS Code
+.vscode/
+
+# Variables de entorno
+.env
