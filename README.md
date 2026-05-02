@@ -21,6 +21,7 @@ App web (Streamlit) que envuelve un modelo DistilBERT fine-tuneado sobre Yelp Re
 Acepta reseñas individuales o archivos CSV completos y genera un dashboard accionable
 con KPIs, gráficas interactivas, alertas por sucursal, palabras clave en quejas y reportes PDF.
 Link publico a la app: https://huggingface.co/spaces/sadojrtora/sentiment_analysisTFM
+
 ---
 
 ## 🗂️ Estructura del proyecto
