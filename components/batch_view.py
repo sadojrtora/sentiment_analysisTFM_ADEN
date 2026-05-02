@@ -79,7 +79,37 @@ def _procesar_csv(contenido_bytes: bytes, _pipeline, batch_size: int) -> pd.Data
     """
     # Leer el CSV desde los bytes. io.BytesIO simula un archivo en memoria.
     # `encoding='utf-8'` cubre la mayoría de casos. Si falla, el caller debe re-encodear.
-    df = pd.read_csv(io.BytesIO(contenido_bytes))  ##CAMBIAR ENCODING
+    # df = pd.read_csv(io.BytesIO(contenido_bytes))  ##CAMBIAR ENCODING
+
+     # Leer el CSV con detección automática de encoding.
+    # Problema: CSVs generados en Excel/Windows vienen en 'latin-1' o 'cp1252'
+    # (no UTF-8), lo que rompe caracteres españoles (á, é, ñ, ü, etc.).
+    # Solución: intentamos encodings en orden de probabilidad. Si el primero falla
+    # (UnicodeDecodeError), probamos el siguiente.
+    #
+    # Orden de prueba:
+    #   1. utf-8-sig: UTF-8 con BOM (Byte Order Mark). Excel guarda así cuando
+    #      eliges "CSV UTF-8" — el BOM es un marcador invisible al inicio del archivo.
+    #   2. utf-8: UTF-8 estándar (la mayoría de editores modernos).
+    #   3. latin-1: ISO-8859-1, encoding histórico de Europa Occidental.
+    #      Cubre á, é, í, ó, ú, ñ, ü perfectamente. Excel en español lo usa por default.
+    #   4. cp1252: Windows-1252, superset de latin-1. Muy común en Windows en español.
+    #
+    # latin-1 es el fallback final porque acepta CUALQUIER byte 0-255 sin lanzar
+    # UnicodeDecodeError — es imposible que falle.
+    df = None
+    for encoding in ['utf-8-sig', 'utf-8', 'latin-1', 'cp1252']:
+        try:
+            df = pd.read_csv(io.BytesIO(contenido_bytes), encoding=encoding)
+            break
+        except (UnicodeDecodeError, Exception):
+            continue
+
+    if df is None:
+        raise ValueError(
+            "No se pudo leer el CSV. Intenta guardarlo como UTF-8 desde Excel: "
+            "Archivo → Guardar como → CSV UTF-8 (delimitado por comas)."
+        )
 
     # Extraer la columna de textos como lista. .fillna('') previene errores con celdas vacías.
     # .astype(str) garantiza que todo sea string (a veces pandas infiere int o float si las
@@ -179,12 +209,35 @@ def render(pipeline):
 
     # Intentamos parsear el CSV para validarlo ANTES de procesar.
     # Si falla, mostramos error específico y abortamos.  ##CAMBIAR ENCODING
-    try:
-        df_preview = pd.read_csv(io.BytesIO(contenido_bytes))
-    except Exception as e:
-        st.error(f"❌ Error al leer el CSV: {e}")
-        st.info("Verifica que el archivo sea un CSV válido en encoding UTF-8.")
+    # try:
+    #     df_preview = pd.read_csv(io.BytesIO(contenido_bytes))
+    # except Exception as e:
+    #     st.error(f"❌ Error al leer el CSV: {e}")
+    #     st.info("Verifica que el archivo sea un CSV válido en encoding UTF-8.")
+    #     return
+    
+    df_preview = None
+    for encoding in ['utf-8-sig', 'utf-8', 'latin-1', 'cp1252']:
+        try:
+            df_preview = pd.read_csv(io.BytesIO(contenido_bytes), encoding=encoding)
+            break
+        except (UnicodeDecodeError, Exception):
+            continue
+
+    if df_preview is None:
+        st.error("❌ No se pudo leer el CSV con ningún encoding conocido.")
+        st.info(
+            "Intenta guardarlo como UTF-8 desde Excel: "
+            "Archivo → Guardar como → CSV UTF-8 (delimitado por comas)."
+        )
         return
+
+    # Intentamos parsear el CSV para validarlo ANTES de procesar.
+    # Usamos la misma lógica de detección de encoding que _procesar_csv:
+    # probamos utf-8-sig → utf-8 → latin-1 → cp1252 en orden.
+    # Esto garantiza que el preview muestre correctamente tildes y ñ
+    # independientemente de cómo el usuario generó el archivo.
+
 
     # Validar que exista la columna requerida.
     if COLUMNA_REQUERIDA not in df_preview.columns:

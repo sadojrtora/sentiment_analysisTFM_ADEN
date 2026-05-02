@@ -152,12 +152,12 @@ Análisis profundo sobre los resultados de la Tab 2:
 
 ---
 
-## 🚢 Deploy a Streamlit Community Cloud (gratis)
+<!-- ## 🚢 Deploy a Streamlit Community Cloud (gratis)
 
 1. Sube todo el proyecto a un repo de GitHub (incluyendo el modelo o un script que lo descargue al iniciar).
 2. Ve a [share.streamlit.io](https://share.streamlit.io) → "New app" → conecta tu repo.
 3. Especifica `app.py` como entry point.
-4. Deploy. En 2-3 minutos tienes URL pública.
+4. Deploy. En 2-3 minutos tienes URL pública. -->
 
 > ⚠️ El modelo pesa ~265MB. Si tu repo excede el límite de GitHub (100MB por archivo),
 > usa Git LFS o aloja el modelo en Hugging Face Hub y descárgalo en `cargar_pipeline()`.
@@ -170,10 +170,10 @@ Análisis profundo sobre los resultados de la Tab 2:
 En `components/batch_view.py`, ajusta `UMBRAL_CONFIANZA_DEFAULT`. También es ajustable
 desde la UI con un slider.
 
-### Cambiar los umbrales de alerta de negocio
+<!-- ### Cambiar los umbrales de alerta de negocio
 En `components/insights_view.py`:
 - `UMBRAL_NEG_ALERTA_GLOBAL`: % de negativas global que dispara alerta crítica.
-- `UMBRAL_NEG_SUCURSAL_DELTA`: diferencia en pp sobre el promedio para alertar a una sucursal.
+- `UMBRAL_NEG_SUCURSAL_DELTA`: diferencia en pp sobre el promedio para alertar a una sucursal. -->
 
 ### Usar GPU
 Si tu máquina tiene GPU NVIDIA, `pipeline.py` la detecta automáticamente con
